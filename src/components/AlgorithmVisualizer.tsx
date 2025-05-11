@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
 interface AlgorithmVisualizerProps {
@@ -11,11 +11,78 @@ const AlgorithmVisualizer: React.FC<AlgorithmVisualizerProps> = ({ selectedAlgor
   const [array, setArray] = useState<number[]>([]) //initialize array to only hold numbers and empty 
   const [isPlaying, setIsPlaying] = useState(false) //initialize to flase (not playing or paused)
   const [speed, setSpeed] = useState(1) //initial speed is 1x
+  const [currentStep, setCurrentStep] = useState(0)
+  const [sortingSteps, setSortingSteps] = useState<number[][]>([])
 
   const generateNewArray = () => {
     const newArray = Array.from({ length: 10 }, () => Math.floor(Math.random() * 100)) // Creats a new array size 10 with numbers from 0 to 99
     //console.log(newArray)
     setArray(newArray) //update the state variable array to newArray values
+    setCurrentStep(0) // make sure the following are in initial states 
+    setSortingSteps([])
+    setIsPlaying(false)
+  }
+
+  //implement bubbleSort Algroithm 
+  const bubbleSort = (arr: number[]) => {   //takes param array 
+    const steps: number[][] = [arr.slice()]  // slice to make a copy of the array and store it into a 2d array.  This is important for visualzation (each array in every step of the sorting process is shown) 
+    const n = arr.length // the rest is normal bubblesort implementation 
+    let swapped: boolean
+
+    do {
+      swapped = false
+      for (let i = 0; i < n - 1; i++) {
+        if (arr[i] > arr[i + 1]) {
+          [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]] //Swap arr[i-1] and arr[i]
+          swapped = true // do the outer loop again
+          steps.push(arr.slice()) //push current array into steps 2d matrix  (for viusualization)
+        }
+      }
+    } while (swapped)
+    
+    console.log(steps.length);
+    return steps
+  }
+
+  //InstertionSort implementation
+  const insertionSort = (arr:number[]) => {
+    for(let j = 1; j<arr.length; j++ ){
+      let key = arr[j]
+      let i = j-1
+
+      while(i>=0 && arr[i] > key){
+        arr[i+1] = arr[i]
+        i = i-1
+      }
+      arr[i+1] = key
+    }
+    return arr;
+  }
+
+  console.log(insertionSort([3,2,1,8,53,7,9,3]));
+
+//runs everytime a component renders or a value changes 
+  useEffect(() => {
+    if (isPlaying && currentStep < sortingSteps.length - 1) { //make sure is playing and not on the last step 
+      const timer = setTimeout(() => {
+        setCurrentStep(prev => prev + 1) //move to the next step
+        setArray(sortingSteps[currentStep + 1]) //set the array to the next one
+        console.log(currentStep);
+        console.log(array)
+      }, 1000 / speed) //1s per step
+      return () => clearTimeout(timer) //clear so no stacking 
+    } else if (currentStep >= sortingSteps.length - 1) { //last step stop playing
+      setIsPlaying(false)
+    }
+  }, [isPlaying, currentStep, sortingSteps, speed] /*run when ever dependancies change */)
+
+  //called when play is clicked
+  const handlePlay = () => {
+    if (!isPlaying && currentStep === 0) { //makes sure INITIAL state 
+      const steps = bubbleSort([...array]) //calls bubble sort with a copy of 'array'
+      setSortingSteps(steps) // allows useEffects to now run
+    }
+    setIsPlaying(!isPlaying) //change the state of the button 
   }
 
   return (
@@ -40,7 +107,7 @@ const AlgorithmVisualizer: React.FC<AlgorithmVisualizerProps> = ({ selectedAlgor
             </button>
             <button //Play sorting algorithm button
               className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-              onClick={() => setIsPlaying(!isPlaying)} 
+              onClick={handlePlay} 
             >
               {isPlaying ? 'Pause' : 'Play'} {/* update the text on the button */}
             </button>
