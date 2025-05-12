@@ -35,7 +35,7 @@ const AlgorithmVisualizer: React.FC<AlgorithmVisualizerProps> = ({ selectedAlgor
         if (arr[i] > arr[i + 1]) {
           [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]] //Swap arr[i-1] and arr[i]
           swapped = true // do the outer loop again
-          steps.push(arr.slice()) //push current array into steps 2d matrix  (for viusualization)
+          steps.push(arr.slice()) //push current array into steps 2d matrix  (for viusualization) -- Show an element shift 
         }
       }
     } while (swapped)
@@ -46,6 +46,7 @@ const AlgorithmVisualizer: React.FC<AlgorithmVisualizerProps> = ({ selectedAlgor
 
   //InstertionSort implementation
   const insertionSort = (arr:number[]) => {
+    const steps: number[][] = [arr.slice()]
     for(let j = 1; j<arr.length; j++ ){
       let key = arr[j]
       let i = j-1
@@ -53,10 +54,13 @@ const AlgorithmVisualizer: React.FC<AlgorithmVisualizerProps> = ({ selectedAlgor
       while(i>=0 && arr[i] > key){
         arr[i+1] = arr[i]
         i = i-1
+        steps.push(arr.slice()) //show element shift 
       }
       arr[i+1] = key
+      steps.push(arr.slice()) //show element shift 
     }
-    return arr;
+    console.log(steps);
+    return steps;
   }
 
   console.log(insertionSort([3,2,1,8,53,7,9,3]));
