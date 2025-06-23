@@ -1,19 +1,15 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
-interface AlgorithmVisualizerProps {
-  selectedAlgorithm: string
-}
-
-//make a component named AlgorithmVisualizer with a prop type selectedAlgorithm
-const AlgorithmVisualizer: React.FC<AlgorithmVisualizerProps> = () => {
+const AlgorithmVisualizer = () => {
   //state variables ** Important for UI to re render**
   const [array, setArray] = useState<number[]>([]) //initialize array to only hold numbers and empty 
   const [isPlaying, setIsPlaying] = useState(false) //initialize to flase (not playing or paused)
   const [speed, setSpeed] = useState(1) //initial speed is 1x
-  const [currentStep, setCurrentStep] = useState(0)
-  const [sortingSteps, setSortingSteps] = useState<number[][]>([])
-  const [selectedAlgorithm, setSelectedAlgorithm] = useState('bubble-sort')
+  const [currentStep, setCurrentStep] = useState(0) //inital step 0 
+  const [sortingSteps, setSortingSteps] = useState<number[][]>([]) //intial empty matrix of sorting steps
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState('bubble-sort') //starts in bubble-sort state 
+  const [barColors, setBarColors] = useState<string[]>([]) //empty colours
 
   const generateNewArray = () => {
     const newArray = Array.from({ length: 10 }, () => Math.floor(Math.random() * 100)) // Creats a new array size 10 with numbers from 0 to 99
@@ -22,6 +18,7 @@ const AlgorithmVisualizer: React.FC<AlgorithmVisualizerProps> = () => {
     setCurrentStep(0) // make sure the following are in initial states 
     setSortingSteps([])
     setIsPlaying(false)
+    setBarColors(newArray.map(() => 'bg-indigo-500')) //all 10 number element in the array is now this colour 
   }
 
   //implement bubbleSort Algroithm 
@@ -66,7 +63,6 @@ const AlgorithmVisualizer: React.FC<AlgorithmVisualizerProps> = () => {
 
   //selectionSort implementation
   const selectionSort = (arr: number[]) => {
-
     const steps: number[][] = [arr.slice()]
 
     for (let i = 0; i<arr.length; i++){
@@ -81,43 +77,144 @@ const AlgorithmVisualizer: React.FC<AlgorithmVisualizerProps> = () => {
         steps.push(arr.slice());
       }
     }
-    console.log(steps)
-      return steps
+    return steps
   }
 
-
-
-
-//runs everytime a component renders or a value changes 
-  useEffect(() => {
-    if (isPlaying && currentStep < sortingSteps.length - 1) { //make sure is playing and not on the last step 
-      const timer = setTimeout(() => {
-        setCurrentStep(prev => prev + 1) //move to the next step
-        setArray(sortingSteps[currentStep + 1]) //set the array to the next one
-       // console.log(currentStep);
-       // console.log(array)
-      }, 1000 / speed) //1s per step
-      return () => clearTimeout(timer) //clear so no stacking 
-    } else if (currentStep >= sortingSteps.length - 1) { //last step stop playing
-      setIsPlaying(false)
+// merge sort implementation 
+  const mergeSort = (arr: number[]) => {
+    const steps: number[][] = [arr.slice()] //create the initial matrix with only arr
+    const colors: string[][] = [arr.map(() => 'bg-indigo-500')] //set every colour to default
+    
+    //merge function 
+    const merge = (left: number[], right: number[], startIdx: number, depth: number) => {
+      const result: number[] = []
+      let i = 0, j = 0
+      
+      // Color the bars being merged
+      const currentColors = [...colors[colors.length - 1]]
+      for (let k = startIdx; k < startIdx + left.length + right.length; k++) {
+        currentColors[k] = 'bg-yellow-500'
+      }
+      colors.push([...currentColors])
+      steps.push([...arr]) //spread operator -- same as arr.slice()
+      
+      while (i < left.length && j < right.length) {
+        if (left[i] <= right[j]) {
+          result.push(left[i])
+          i++
+        } else {
+          result.push(right[j])
+          j++
+        }
+      }
+      
+      while (i < left.length) {
+        result.push(left[i])
+        i++
+      }
+      
+      while (j < right.length) {
+        result.push(right[j])
+        j++
+      }
+      
+      // Update the original array with merged result
+      for (let k = 0; k < result.length; k++) {
+        arr[startIdx + k] = result[k]
+      }
+      
+      // Color the merged bars
+      const mergedColors = [...colors[colors.length - 1]]
+      for (let k = startIdx; k < startIdx + result.length; k++) {
+        mergedColors[k] = 'bg-green-500'
+      }
+      colors.push([...mergedColors])
+      steps.push([...arr])
     }
-  }, [isPlaying, currentStep, sortingSteps, speed] /*run when ever dependancies change */)
+    
+    //sort function 
+    const sort = (arr: number[], start: number, end: number, depth: number) => {
+      if (end - start <= 1) return
+
+      const mid = Math.floor((start + end) / 2)
+      
+      // Color the bars being divided
+      const currentColors = [...colors[colors.length - 1]]
+      for (let k = start; k < end; k++) {
+        currentColors[k] = 'bg-blue-500'
+      }
+      colors.push([...currentColors])
+      steps.push([...arr])
+      
+      // recursive call to sort function 
+      sort(arr, start, mid, depth + 1)
+      sort(arr, mid, end, depth + 1)
+      //call merge function 
+      merge(arr.slice(start, mid), arr.slice(mid, end), start, depth)
+    }
+    
+    //call sort function 
+    sort(arr, 0, arr.length, 0)
+    
+    // Add final step with original color
+    const finalColors = arr.map(() => 'bg-indigo-500')
+    colors.push(finalColors)
+    steps.push([...arr])
+    
+    //return the object of steps and colors 
+    return { steps, colors }
+  }
+
+  //runs everytime a component renders or a value changes 
+  useEffect(() => {
+    if (isPlaying && currentStep < sortingSteps.length - 1) {
+      const timer = setTimeout(() => {
+        setCurrentStep(prev => prev + 1)
+        setArray(sortingSteps[currentStep + 1])
+        if (selectedAlgorithm === 'merge-sort') {
+          const result = mergeSort([...array]) //call merge sort function 
+          setBarColors(result.colors[currentStep + 1]) //set the bar colors to the next step 
+        }
+      }, 1000 / speed)
+      return () => clearTimeout(timer)
+    } else if (currentStep >= sortingSteps.length - 1) {
+      setIsPlaying(false)
+      // Ensure bars return to original color when sorting is complete
+      setBarColors(array.map(() => 'bg-indigo-500'))
+    }
+  }, [isPlaying, currentStep, sortingSteps, speed, selectedAlgorithm, array]) //dependency array, re-renders when these values change 
 
   //called when play is clicked
   const handlePlay = () => {
-    if (!isPlaying && currentStep === 0) { //makes sure INITIAL state
+    if (!isPlaying && currentStep === 0) {
       let steps: number[][] = []
+      let colors: string[][] = []
+      
       if(selectedAlgorithm === 'bubble-sort'){
-       steps = bubbleSort([...array]) //calls bubble sort with a copy of 'array'
-       } else if (selectedAlgorithm === 'insertion-sort'){
+        steps = bubbleSort([...array]) //call bubble sort function 
+        console.log(steps);
+        colors = steps.map(() => array.map(() => 'bg-indigo-500')) //every value in every step is now this colour 
+        console.log(colors);
+      } else if (selectedAlgorithm === 'insertion-sort'){
         steps = insertionSort([...array])
+        colors = steps.map(() => array.map(() => 'bg-indigo-500'))
       }
       else if (selectedAlgorithm === 'selection-sort'){
         steps = selectionSort([...array])
+        colors = steps.map(() => array.map(() => 'bg-indigo-500'))
       }
-      setSortingSteps(steps) // allows useEffects to now run
+      else if (selectedAlgorithm === 'merge-sort'){
+        const result = mergeSort([...array]) //call merge sort function, save the object of steps and colors to result
+        steps = result.steps
+        colors = result.colors
+        console.log(steps);
+        console.log(colors);
+      }
+      
+      setSortingSteps(steps)
+      setBarColors(colors[0]) //set the bar colors to the first step 
     }
-    setIsPlaying(!isPlaying) //change the state of the button 
+    setIsPlaying(!isPlaying)
   }
 
   return (
@@ -157,7 +254,7 @@ const AlgorithmVisualizer: React.FC<AlgorithmVisualizerProps> = () => {
           {array.map((value, index) => ( //For each loop
             <motion.div // motion div to set up animations and render bars 
               key={index}
-              className="w-8 bg-indigo-500 rounded-t-lg min-h-[25px]"
+              className={`w-8 ${barColors[index] || 'bg-indigo-500'} rounded-t-lg min-h-[25px]`}
               style={{ height: `${value+8}%` }}
               initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}

@@ -1,28 +1,36 @@
-import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import AlgorithmVisualizer from './components/AlgorithmVisualizer'
-import Chatbot from './components/Chatbot'
+import GraphVisualizer from './components/GraphVisualizer'
+import LandingPage from './components/LandingPage'
 
 function App() {
-  const [selectedAlgorithm, setSelectedAlgorithm] = useState<string>('bubble-sort')
-
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">Algorithm Visualizer</h1>
-        </div>
-      </header>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <AlgorithmVisualizer selectedAlgorithm={selectedAlgorithm} />
+    <Router>
+      <div className="min-h-screen bg-gray-100">
+        <header className="bg-white shadow">
+          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center">
+              <Link to="/" className="text-3xl font-bold text-gray-900 hover:text-indigo-600">
+                Algorithm Visualizer
+              </Link>
+              <nav className="space-x-4">
+                <Link to="/" className="text-gray-600 hover:text-indigo-600">Home</Link>
+                <Link to="/sorting" className="text-gray-600 hover:text-indigo-600">Sorting</Link>
+                <Link to="/graph" className="text-gray-600 hover:text-indigo-600">Graph</Link>
+              </nav>
+            </div>
           </div>
-          <div className="lg:col-span-1">
-            <Chatbot />
-          </div>
-        </div>
-      </main>
-    </div>
+        </header>
+
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/sorting" element={<AlgorithmVisualizer />} />
+            <Route path="/graph" element={<GraphVisualizer />} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   )
 }
 
