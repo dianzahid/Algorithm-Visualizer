@@ -2,6 +2,18 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
 const AlgorithmVisualizer = () => {
+  // Color configuration - centralized color management
+  const getDefaultColor = (algorithm: string) => {
+    switch (algorithm) {
+      case 'bubble-sort':
+        return 'bg-indigo-500'
+      case 'merge-sort':
+        return 'bg-indigo-500'
+      default:
+        return 'bg-indigo-500'
+    }
+  }
+
   //state variables ** Important for UI to re render**
   const [array, setArray] = useState<number[]>([]) //initialize array to only hold numbers and empty 
   const [isPlaying, setIsPlaying] = useState(false) //initialize to flase (not playing or paused)
@@ -18,7 +30,7 @@ const AlgorithmVisualizer = () => {
     setCurrentStep(0) // make sure the following are in initial states 
     setSortingSteps([])
     setIsPlaying(false)
-    setBarColors(newArray.map(() => 'bg-indigo-500')) //all 10 number element in the array is now this colour 
+    setBarColors(newArray.map(() => getDefaultColor(selectedAlgorithm))) //use centralized color function
   }
 
   //implement bubbleSort Algroithm 
@@ -179,10 +191,10 @@ const AlgorithmVisualizer = () => {
       return () => clearTimeout(timer)
     } else if (currentStep >= sortingSteps.length - 1) {
       setIsPlaying(false)
-      // Ensure bars return to original color when sorting is complete
-      setBarColors(array.map(() => 'bg-indigo-500'))
+      // Ensure bars return to appropriate color when sorting is complete
+      setBarColors(array.map(() => getDefaultColor(selectedAlgorithm)))
     }
-  }, [isPlaying, currentStep, sortingSteps, speed, selectedAlgorithm, array]) //dependency array, re-renders when these values change 
+  }, [isPlaying, currentStep, sortingSteps, speed, selectedAlgorithm, array]) //dependency array, re-renders when these values change
 
   //called when play is clicked
   const handlePlay = () => {
@@ -192,16 +204,14 @@ const AlgorithmVisualizer = () => {
       
       if(selectedAlgorithm === 'bubble-sort'){
         steps = bubbleSort([...array]) //call bubble sort function 
-        console.log(steps);
-        colors = steps.map(() => array.map(() => 'bg-indigo-500')) //every value in every step is now this colour 
-        console.log(colors);
+        colors = steps.map(() => array.map(() => getDefaultColor(selectedAlgorithm)))
       } else if (selectedAlgorithm === 'insertion-sort'){
         steps = insertionSort([...array])
-        colors = steps.map(() => array.map(() => 'bg-indigo-500'))
+        colors = steps.map(() => array.map(() => getDefaultColor(selectedAlgorithm)))
       }
       else if (selectedAlgorithm === 'selection-sort'){
         steps = selectionSort([...array])
-        colors = steps.map(() => array.map(() => 'bg-indigo-500'))
+        colors = steps.map(() => array.map(() => getDefaultColor(selectedAlgorithm)))
       }
       else if (selectedAlgorithm === 'merge-sort'){
         const result = mergeSort([...array]) //call merge sort function, save the object of steps and colors to result
@@ -254,7 +264,7 @@ const AlgorithmVisualizer = () => {
           {array.map((value, index) => ( //For each loop
             <motion.div // motion div to set up animations and render bars 
               key={index}
-              className={`w-8 ${barColors[index] || 'bg-indigo-500'} rounded-t-lg min-h-[25px]`}
+              className={`w-8 ${barColors[index] || 'bg-yellow-500'} rounded-t-lg min-h-[25px]`}
               style={{ height: `${value+8}%` }}
               initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}
