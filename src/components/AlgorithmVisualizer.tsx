@@ -336,11 +336,12 @@ const AlgorithmVisualizer = () => {
   useEffect(() => {
     if (isPlaying && currentStep < sortingSteps.length - 1) {
       const timer = setTimeout(() => {
-        setCurrentStep(prev => prev + 1)
-        setArray(sortingSteps[currentStep + 1])
+        const nextStep = currentStep + 1
+        setCurrentStep(nextStep)
+        setArray(sortingSteps[nextStep])
         // Update colors from the stored algorithm colors
-        if (currentStep + 1 < algorithmColors.length) {
-          setBarColors(algorithmColors[currentStep + 1])
+        if (nextStep < algorithmColors.length) {
+          setBarColors(algorithmColors[nextStep])
         }
       }, 1000 / speed)
       return () => clearTimeout(timer)
@@ -396,7 +397,7 @@ const AlgorithmVisualizer = () => {
   return (
     <div className="bg-white rounded-lg shadow p-6"> {/*The main div for the Visualizer */} 
       <div className="bg-flex flex-col space-y-4"> {/*The flex container for the Visualizer -- top are buttons -- middle is the graph -- bottom is the speed  */}
-        <div className="flex justify-between items-center"> {/* top div and flex container for buttons */}
+        <div className="flex justify-between items-start"> {/* top div and flex container for buttons */}
           <div className="flex flex-col space-y-2">
             <label className="text-sm font-medium text-gray-700">
               Select Sorting Algorithm:
@@ -426,11 +427,41 @@ const AlgorithmVisualizer = () => {
               > {/* call the GenerateNewArrayFunction */}
                 Generate Array
               </button>
-              <button //Play sorting algorithm button
+              <button //Play/Pause sorting algorithm button
                 className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
                 onClick={handlePlay} 
               >
                 {isPlaying ? 'Pause' : 'Play'} {/* update the text on the button */}
+              </button>
+              <button //Step backward button
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => {
+                  if (currentStep > 0) {
+                    setCurrentStep(prev => prev - 1)
+                    setArray(sortingSteps[currentStep - 1])
+                    if (currentStep - 1 < algorithmColors.length) {
+                      setBarColors(algorithmColors[currentStep - 1])
+                    }
+                  }
+                }}
+                disabled={currentStep === 0 || sortingSteps.length === 0}
+              >
+                ⏮️ Back
+              </button>
+              <button //Step forward button
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => {
+                  if (currentStep < sortingSteps.length - 1) {
+                    setCurrentStep(prev => prev + 1)
+                    setArray(sortingSteps[currentStep + 1])
+                    if (currentStep + 1 < algorithmColors.length) {
+                      setBarColors(algorithmColors[currentStep + 1])
+                    }
+                  }
+                }}
+                disabled={currentStep >= sortingSteps.length - 1 || sortingSteps.length === 0}
+              >
+                ⏭️ Forward
               </button>
             </div>
             <div className="flex items-center space-x-2">
@@ -452,6 +483,34 @@ const AlgorithmVisualizer = () => {
               </div>
               <span className="text-xs text-gray-500">Large</span>
             </div>
+            {sortingSteps.length > 0 && (
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-gray-500">Step 1</span>
+                <div className="relative group flex-1">
+                  <input
+                    type="range"
+                    min="0"
+                    max={sortingSteps.length - 1}
+                    step="1"
+                    value={currentStep}
+                    onChange={(e) => {
+                      const newStep = parseInt(e.target.value)
+                      setCurrentStep(newStep)
+                      setArray(sortingSteps[newStep])
+                      if (newStep < algorithmColors.length) {
+                        setBarColors(algorithmColors[newStep])
+                      }
+                    }}
+                    className="w-full"
+                  />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                    Step {currentStep + 1} of {sortingSteps.length}
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                  </div>
+                </div>
+                <span className="text-xs text-gray-500">Step {sortingSteps.length}</span>
+              </div>
+            )}
           </div>
         </div>
 
