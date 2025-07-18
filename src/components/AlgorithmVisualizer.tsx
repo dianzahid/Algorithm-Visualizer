@@ -69,6 +69,32 @@ const AlgorithmVisualizer = () => {
           howItWorks: 'The algorithm works by dividing the unsorted list into n sublists, each containing one element (a list of one element is considered sorted). Then repeatedly merge sublists to produce new sorted sublists until there is only one sublist remaining.',
           useCases: 'Merge Sort is excellent for sorting linked lists and is often used in external sorting. It\'s also used in many programming languages\' built-in sort functions due to its guaranteed O(n log n) performance.'
         }
+      case 'quick-sort':
+        return {
+          name: 'Quick Sort',
+          timeComplexity: {
+            best: 'O(n log n)',
+            average: 'O(n log n)',
+            worst: 'O(n²)'
+          },
+          spaceComplexity: 'O(log n)',
+          description: 'Quick Sort is a highly efficient, divide-and-conquer, comparison-based sorting algorithm. It works by selecting a "pivot" element from the array and partitioning the other elements into two sub-arrays, according to whether they are less than or greater than the pivot. The sub-arrays are then sorted recursively.',
+          howItWorks: 'Quick Sort picks a pivot element and partitions the array such that all elements less than the pivot are on the left, and all elements greater are on the right. It then recursively applies the same logic to the left and right sub-arrays. The base case of the recursion is arrays of size 0 or 1, which are already sorted.',
+          useCases: 'Quick Sort is often the algorithm of choice for large datasets and is widely used in practice due to its average-case efficiency and in-place sorting. However, it is not stable and can degrade to O(n²) if a poor pivot is consistently chosen.'
+        }
+      case 'heap-sort':
+        return {
+          name: 'Heap Sort',
+          timeComplexity: {
+            best: 'O(n log n)',
+            average: 'O(n log n)',
+            worst: 'O(n log n)'
+          },
+          spaceComplexity: 'O(1)',
+          description: 'Heap Sort is a comparison-based sorting algorithm that uses a binary heap data structure. It divides its input into a sorted and an unsorted region, and it iteratively shrinks the unsorted region by extracting the largest element and moving that to the sorted region.',
+          howItWorks: 'Heap Sort first builds a max heap from the input data. The largest item is stored at the root of the heap. It is replaced by the last item of the heap followed by reducing the size of heap by one. The heap is then heapified. The process is repeated until the size of the heap is greater than one.',
+          useCases: 'Heap Sort is useful when memory write is a costly operation, as it makes the minimum possible number of swaps. It is not a stable sort, but it is in-place and has a good worst-case time complexity.'
+        }
       default:
         return {
           name: 'Unknown Algorithm',
@@ -332,6 +358,128 @@ const AlgorithmVisualizer = () => {
     return { steps, colors }
   }
 
+  //quickSort implementation
+  const quickSort = (arr: number[]) => {
+    const steps: number[][] = [arr.slice()]
+    const colors: string[][] = [arr.map(() => 'bg-indigo-500')]
+
+    const sort = (arr: number[], left: number, right: number) => {
+      if (left < right) {
+        const pivotIndex = partition(arr, left, right)
+        sort(arr, left, pivotIndex - 1)
+        sort(arr, pivotIndex + 1, right)
+      }
+    }
+
+    const partition = (arr: number[], left: number, right: number) => {
+      const pivot = arr[right]
+      let i = left - 1
+      // Color the pivot
+      const pivotColors = [...colors[colors.length - 1]]
+      pivotColors[right] = 'bg-yellow-500'
+      colors.push([...pivotColors])
+      steps.push([...arr])
+      for (let j = left; j < right; j++) {
+        // Color the current element being compared
+        const compareColors = [...colors[colors.length - 1]]
+        compareColors[j] = 'bg-blue-500'
+        colors.push([...compareColors])
+        steps.push([...arr])
+        if (arr[j] < pivot) {
+          i++
+          [arr[i], arr[j]] = [arr[j], arr[i]]
+          // Color the swapped elements
+          const swapColors = [...colors[colors.length - 1]]
+          swapColors[i] = 'bg-green-500'
+          swapColors[j] = 'bg-green-500'
+          colors.push([...swapColors])
+          steps.push([...arr])
+        }
+      }
+      [arr[i + 1], arr[right]] = [arr[right], arr[i + 1]]
+      // Color the pivot in its final place
+      const finalPivotColors = [...colors[colors.length - 1]]
+      finalPivotColors[i + 1] = 'bg-red-500'
+      colors.push([...finalPivotColors])
+      steps.push([...arr])
+      return i + 1
+    }
+
+    sort(arr, 0, arr.length - 1)
+    // Add final step with original color
+    const finalColors = arr.map(() => 'bg-indigo-500')
+    colors.push(finalColors)
+    steps.push([...arr])
+    return { steps, colors }
+  }
+
+  //heapSort implementation
+  const heapSort = (arr: number[]) => {
+    const steps: number[][] = [arr.slice()]
+    const colors: string[][] = [arr.map(() => 'bg-indigo-500')]
+    const n = arr.length
+
+    const heapify = (arr: number[], n: number, i: number) => {
+      let largest = i
+      const l = 2 * i + 1
+      const r = 2 * i + 2
+
+      // Color the current node
+      const currentColors = [...colors[colors.length - 1]]
+      currentColors[i] = 'bg-yellow-500'
+      colors.push([...currentColors])
+      steps.push([...arr])
+
+      if (l < n && arr[l] > arr[largest]) {
+        largest = l
+        // Color the left child
+        const leftColors = [...colors[colors.length - 1]]
+        leftColors[l] = 'bg-blue-500'
+        colors.push([...leftColors])
+        steps.push([...arr])
+      }
+      if (r < n && arr[r] > arr[largest]) {
+        largest = r
+        // Color the right child
+        const rightColors = [...colors[colors.length - 1]]
+        rightColors[r] = 'bg-blue-500'
+        colors.push([...rightColors])
+        steps.push([...arr])
+      }
+      if (largest !== i) {
+        [arr[i], arr[largest]] = [arr[largest], arr[i]]
+        // Color the swapped elements
+        const swapColors = [...colors[colors.length - 1]]
+        swapColors[i] = 'bg-green-500'
+        swapColors[largest] = 'bg-green-500'
+        colors.push([...swapColors])
+        steps.push([...arr])
+        heapify(arr, n, largest)
+      }
+    }
+
+    // Build heap
+    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+      heapify(arr, n, i)
+    }
+    // Extract elements from heap
+    for (let i = n - 1; i > 0; i--) {
+      [arr[0], arr[i]] = [arr[i], arr[0]]
+      // Color the root and the swapped element
+      const extractColors = [...colors[colors.length - 1]]
+      extractColors[0] = 'bg-red-500'
+      extractColors[i] = 'bg-red-500'
+      colors.push([...extractColors])
+      steps.push([...arr])
+      heapify(arr, i, 0)
+    }
+    // Add final step with original color
+    const finalColors = arr.map(() => 'bg-indigo-500')
+    colors.push(finalColors)
+    steps.push([...arr])
+    return { steps, colors }
+  }
+
   //runs everytime a component renders or a value changes 
   useEffect(() => {
     if (isPlaying && currentStep < sortingSteps.length - 1) {
@@ -379,6 +527,16 @@ const AlgorithmVisualizer = () => {
         steps = result.steps
         colors = result.colors
       }
+      else if (selectedAlgorithm === 'quick-sort'){
+        const result = quickSort([...array])
+        steps = result.steps
+        colors = result.colors
+      }
+      else if (selectedAlgorithm === 'heap-sort'){
+        const result = heapSort([...array])
+        steps = result.steps
+        colors = result.colors
+      }
       else if (selectedAlgorithm === 'merge-sort'){
         const result = mergeSort([...array]) //call merge sort function, save the object of steps and colors to result
         steps = result.steps
@@ -413,6 +571,8 @@ const AlgorithmVisualizer = () => {
               <option value="selection-sort">Selection Sort</option>
               <option value="merge-sort">Merge Sort</option>
               <option value="insertion-sort">Insertion Sort</option>
+              <option value="quick-sort">Quick Sort</option>
+              <option value="heap-sort">Heap Sort</option>
             </select>
           </div>
 
