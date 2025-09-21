@@ -279,7 +279,7 @@ const AlgorithmVisualizer = () => {
     const colors: string[][] = [arr.map(() => 'bg-indigo-500')] //set every colour to default
     
     //merge function 
-    const merge = (left: number[], right: number[], startIdx: number, depth: number) => {
+    const merge = (left: number[], right: number[], startIdx: number) => {
       const result: number[] = []
       let i = 0, j = 0
       
@@ -343,7 +343,7 @@ const AlgorithmVisualizer = () => {
       sort(arr, start, mid, depth + 1)
       sort(arr, mid, end, depth + 1)
       //call merge function 
-      merge(arr.slice(start, mid), arr.slice(mid, end), start, depth)
+      merge(arr.slice(start, mid), arr.slice(mid, end), start)
     }
     
     //call sort function 
